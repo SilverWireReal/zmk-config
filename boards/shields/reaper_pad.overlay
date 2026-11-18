@@ -1,0 +1,43 @@
+/*
+ * Reaper Macro Pad - hardware description
+ * 9 direct-wired keys + 1 EC11 encoder (with push switch) on a nice!nano v2
+ */
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+    };
+
+    /* Each key: one leg to its own pin, other leg to GND */
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+        input-gpios
+            = <&gpio0 6  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY1  SW1  REC     (J1 pin 1)  */
+            , <&gpio0 8  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY2  SW2  PLAY    (J1 pin 2)  */
+            , <&gpio0 17 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY3  SW3  RETAKE  (J1 pin 5)  */
+            , <&gpio0 20 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY4  SW4  START   (J1 pin 6)  */
+            , <&gpio0 22 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY5  SW5  MARK    (J1 pin 7)  */
+            , <&gpio0 24 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY6  SW6  END     (J1 pin 8)  */
+            , <&gpio1 0  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY7  SW7  UNDO    (J1 pin 9)  */
+            , <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY8  SW8  DELETE  (J1 pin 10) */
+            , <&gpio1 4  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* KEY9  SW9  SAVE    (J1 pin 11) */
+            , <&gpio1 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* ENC_SW knob push   (J2 pin 10) */
+            ;
+    };
+
+    /* The knob: A and B to pins, C to GND */
+    encoder0: encoder {
+        compatible = "alps,ec11";
+        a-gpios = <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; /* ENC_A (J2 pin 8) */
+        b-gpios = <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; /* ENC_B (J2 pin 9) */
+        steps = <80>;
+        status = "okay";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&encoder0>;
+        triggers-per-rotation = <20>;
+    };
+};
