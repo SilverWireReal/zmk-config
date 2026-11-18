@@ -1,0 +1,39 @@
+/*
+ * Reaper Macro Pad - what each key does
+ *
+ *   [ REC    ] [ PLAY  ] [ RETAKE ]   (knob: turn = volume, press = mute)
+ *   [ START  ] [ MARK  ] [ END    ]
+ *   [ UNDO   ] [ DELETE] [ SAVE   ]
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    macros {
+        /* RETAKE = undo the last take, then start recording again */
+        retake: retake {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <40>;
+            tap-ms = <40>;
+            bindings = <&kp LC(Z) &kp LC(R)>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            bindings = <
+                &kp LC(R)   &kp SPACE    &retake
+                &kp HOME    &kp M        &kp END
+                &kp LC(Z)   &kp DELETE   &kp LC(S)
+                &kp C_MUTE
+            >;
+
+            /* Knob: clockwise = volume up, counter-clockwise = volume down */
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+    };
+};
