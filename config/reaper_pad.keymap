@@ -1,17 +1,43 @@
 /*
- * Reaper Macro Pad - what each key does
+ * Reaper Macro Pad - loadouts
  *
- *   [ REC    ] [ PLAY  ] [ RETAKE ]   (knob: turn = volume, press = mute)
- *   [ START  ] [ MARK  ] [ END    ]
- *   [ UNDO   ] [ DELETE] [ SAVE   ]
+ * SWITCH LOADOUT: hold the knob down + press a key
+ *
+ *   [ 1 REAPER ] [ 2 DESK    ] [ 3 MEDIA   ]
+ *   [ 4 DISCORD] [ 5 STREAM  ] [ 6 SCRIPTS ]
+ *   [ 7 BT: PC ] [ 8 BT: 2nd ] [ 9 FLASH   ]   <- 7/8 pick which paired device it talks to,
+ *                                                 9 = firmware update mode (see bottom)
+ *
+ * Tap the knob = mute (every loadout). Turn the knob = volume (except SCRIPTS = scroll).
+ * The pad always starts in REAPER when it powers on.
  */
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+
+#define REAPER  0
+#define DESK    1
+#define MEDIA   2
+#define DISCORD 3
+#define STREAM  4
+#define SCRIPTS 5
+#define SELECT  6
 
 / {
+    behaviors {
+        /* knob press: tap = mute, hold = loadout picker */
+        knob: knob_hold_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <250>;
+            bindings = <&mo>, <&kp>;
+        };
+    };
+
     macros {
-        /* RETAKE = undo the last take, then start recording again */
+        /* RETAKE = undo the last take, then record again */
         retake: retake {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
@@ -24,15 +50,105 @@
     keymap {
         compatible = "zmk,keymap";
 
-        default_layer {
+        /* 1 - REAPER (booth)
+         *   REC       PLAY/STOP   RETAKE
+         *   START     MARKER      END
+         *   UNDO      DELETE      SAVE
+         */
+        reaper_layer {
             bindings = <
                 &kp LC(R)   &kp SPACE    &retake
                 &kp HOME    &kp M        &kp END
                 &kp LC(Z)   &kp DELETE   &kp LC(S)
-                &kp C_MUTE
+                &knob SELECT C_MUTE
             >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
 
-            /* Knob: clockwise = volume up, counter-clockwise = volume down */
+        /* 2 - DESK (everyday Windows)
+         *   COPY          PASTE          UNDO
+         *   SNIP          TASK VIEW      SHOW DESKTOP
+         *   PREV TAB      NEXT TAB       LOCK PC
+         */
+        desk_layer {
+            bindings = <
+                &kp LC(C)         &kp LC(V)        &kp LC(Z)
+                &kp LG(LS(S))     &kp LG(TAB)      &kp LG(D)
+                &kp LC(LS(TAB))   &kp LC(TAB)      &kp LG(L)
+                &knob SELECT C_MUTE
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+
+        /* 3 - MEDIA (from bed - works with PC, phone or TV over Bluetooth)
+         *   PREV TRACK    PLAY/PAUSE     NEXT TRACK
+         *   BACK 5-10s    FULLSCREEN     FORWARD 5-10s
+         *   ESC           SWITCH APP     ENTER
+         */
+        media_layer {
+            bindings = <
+                &kp C_PREV   &kp C_PP       &kp C_NEXT
+                &kp LEFT     &kp F          &kp RIGHT
+                &kp ESC      &kp LA(TAB)    &kp RET
+                &knob SELECT C_MUTE
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+
+        /* 4 - DISCORD  (set F13-F17 in Discord > Settings > Keybinds so they work even when Discord isn't focused)
+         *   MUTE MIC (F13)     DEAFEN (F14)        PUSH-TO-TALK (F15, hold)
+         *   ANSWER CALL        DISCONNECT (F16)    QUICK SWITCHER
+         *   PREV CHANNEL       NEXT CHANNEL        TOGGLE CAMERA (F17)
+         */
+        discord_layer {
+            bindings = <
+                &kp F13       &kp F14        &kp F15
+                &kp LC(RET)   &kp F16        &kp LC(K)
+                &kp LA(UP)    &kp LA(DOWN)   &kp F17
+                &knob SELECT C_MUTE
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+
+        /* 5 - STREAM (set these as hotkeys in OBS > Settings > Hotkeys)
+         *   START/STOP STREAM (F18)   START/STOP RECORD (F19)   MUTE MIC (F20)
+         *   SCENE 1 (F21)             SCENE 2 (F22)             SCENE 3 (F23)
+         *   SAVE REPLAY (F24)         DISCORD MUTE (F13)        SCREENSHOT (Shift+F18)
+         */
+        stream_layer {
+            bindings = <
+                &kp F18    &kp F19    &kp F20
+                &kp F21    &kp F22    &kp F23
+                &kp F24    &kp F13    &kp LS(F18)
+                &knob SELECT C_MUTE
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+
+        /* 6 - SCRIPTS (reading lines in the booth - PDFs, docs, teleprompter pages)
+         *   PAGE UP       PAGE DOWN      TOP OF PAGE
+         *   ZOOM OUT      ZOOM RESET     ZOOM IN
+         *   LINE UP       LINE DOWN      SPACE (play/pause in most players)
+         *   knob = scroll up/down
+         */
+        scripts_layer {
+            bindings = <
+                &kp PG_UP      &kp PG_DN      &kp LC(HOME)
+                &kp LC(MINUS)  &kp LC(N0)     &kp LC(EQUAL)
+                &kp UP         &kp DOWN       &kp SPACE
+                &knob SELECT C_MUTE
+            >;
+            sensor-bindings = <&inc_dec_kp DOWN UP>;
+        };
+
+        /* PICKER - active only while the knob is held */
+        select_layer {
+            bindings = <
+                &to REAPER     &to DESK       &to MEDIA
+                &to DISCORD    &to STREAM     &to SCRIPTS
+                &bt BT_SEL 0   &bt BT_SEL 1   &bootloader
+                &trans
+            >;
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
         };
     };
